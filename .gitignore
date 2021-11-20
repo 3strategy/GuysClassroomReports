@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+#sensitive credentials
+credentials.json
+token.json
 
 # C extensions
 *.so
