@@ -214,9 +214,8 @@ class ClassroomSnippets(object):
         else:
             print('Student Submissions:')
             for submission in submissions:
-                print("%s was submitted at %s" %
-                      (submission.get('id'),
-                       submission.get('creationTime')))
+                print(f'{submission.get("id")}  at {submission.get("creationTime")} by {submission.get("userId")} : {submission.get("state")}  got {submission.get("draftGrade")}')
+            return submissions
         # [END classroom_list_submissions]
 
     def list_student_submissions(self, course_id, coursework_id, user_id):

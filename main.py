@@ -41,20 +41,29 @@ def main():
     cs = ClassroomSnippets(service)
     course = cs.get_course(319934191831) #using the functions in the snippets.
     print(course['name'])
-    #res = service.courses().courseWork().list(courseId=319934191831).execute()
+    res = service.courses().courseWork().list(courseId=319934191831).execute()
+    #for c in res['courseWork']: # הדפסת רשימת המטלות
+    #    print(c['id'], c['title']) # הדפסת רשימת המטלות
     #test 30/9: '400863422243'
-    res2 = cs.list_submissions(319934191831,400863422243) #using the functions in the snippets.
-    res3 = service.courses().courseWork().studentSubmissions().list(courseId=319934191831,courseWorkId=400863422243).execute()
-    #res3 will contain all grades but not rubric breakdown.
-    results = service.courses().list(pageSize=10).execute()
-    courses = results.get('courses', [])
-
-    if not courses:
-       print('No courses found.')
-    else:
-       print('Courses:')
-       for course in courses:
-           print(course['name'], course['id'])
+    for hagasha in [448006770517 ,467869743253]:# these are 1430, 1520, 468340104676]:
+        res2 = cs.list_submissions(319934191831,hagasha) #using the functions in the snippets.
+        for r in res2:
+            if r['userId'] == '109281564654077610155': # gilad
+                print(len(r['assignmentSubmission']['attachments']))
+                print(r)
+                print(r)
+        print()
+    # res3 = service.courses().courseWork().studentSubmissions().list(courseId=319934191831,courseWorkId=400863422243).execute()
+    # #res3 will contain all grades but not rubric breakdown.
+    # results = service.courses().list(pageSize=10).execute()
+    # courses = results.get('courses', [])
+    #
+    # if not courses:
+    #    print('No courses found.')
+    # else:
+    #    print('Courses:')
+    #    for course in courses:
+    #        print(course['name'], course['id'])
 
 if __name__ == '__main__':
     main()
