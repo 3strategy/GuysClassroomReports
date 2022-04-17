@@ -245,9 +245,11 @@ class ClassroomSnippets(object):
                 print("%s was submitted at %s" %
                       (submission.get('id'),
                        submission.get('creationTime')))
+            return submissions
         # [END classroom_list_student_submissions]
 
-    def list_all_submissions(self, course_id, user_id):
+
+    def list_all_submissions(self, course_id, user_id, debug=False):
         """ Lists all coursework submissions for a given student. """
         service = self.service
         # [START classroom_list_submissions]
@@ -269,11 +271,15 @@ class ClassroomSnippets(object):
         if not submissions:
             print('No student submissions found.')
         else:
-            print('Complete list of student Submissions:')
-            for submission in submissions:
-                print("%s was submitted at %s" %
-                      (submission.get('id'),
-                       submission.get('creationTime')))
+            if debug:
+                print('Complete list of student Submissions:')
+                for submission in submissions:
+                    #print("%s was submitted at %s" %
+                    #      (submission.get('id'),
+                    #       submission.get('creationTime')))
+                    print(
+                        f'{submission.get("id")} {submission.get("courseWorkId")} at {submission.get("creationTime")} by {submission.get("userId")} : {submission.get("state")}  got {submission.get("draftGrade")}')
+            return submissions
         # [END classroom_list_submissions]
 
     def add_attachment(self, course_id, coursework_id, submission_id):
