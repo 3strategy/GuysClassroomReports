@@ -9,6 +9,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from classroomsnippets import *
 import datetime
+import jsonpickle
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
      'https://www.googleapis.com/auth/classroom.rosters.readonly',
@@ -22,13 +23,33 @@ class CourseWork():
     def __repr__(self):
         return f'{self.id}, {self.name[:10]}, {self.date}'
 
+stdNames = dict([(107766054206145875440,'maayan'), (111172737869240566953,'nimrod'),(108168318660396843189,'guy'), \
+                (112946615777025405797,'gal'),(110218538845151914929,'elad'),(109082288264554060697,'asaf'), \
+                (106955666250273733477,'eden'),(112108709999563961515,'ilay'),(115710532509308023906,'lir'), \
+                (112236029006376497710,'noam'),(109478865400455908580,'shani'),(118327441803103683622,'michal'), \
+                (117889535936306448424,'rom'),(104580194319848892894,'tal'),(102005049826024063953,'itamar'), \
+                (106552389423231110486,'naor'),(112690319777254745789,'yair'),(117090042331819769440,'mayaa'), \
+                (106438875759955145463,'mayas'),(116461312202155079828,'yonatao'),(109281564654077610155,'gilad'), \
+                (101718685423349384354,'yonatanal'),(102048010413141818326,'dana'),(109290410974718440223,'yonatanm')])
+def nickFromId(id):
+    if id in stdNames:
+        return stdNames[id]
+    return 'noNickForId'
+
 class Student():
-    def __init__(self,id,name,nickName):
+    def __init__(self,id,name,familyName,nickName):
       self.id=id
       self.name=name
+      self.familyName = familyName
       self.nickName=nickName
+      self.courseWork={}
+      self.latestAvg=0
     def __repr__(self):
-        return f'{self.id}, {self.name}, {self.nickName}'
+        return f'{self.id}, {self.name}, {self.nickName}, {self.familyName}'
+
+    # def toJSON(self):
+    #   return json.dumps(self, default=lambda o: o.__dict__,
+    #                     sort_keys=True, indent=4)
 
 def main():
     creds = None
@@ -59,6 +80,15 @@ def main():
     res = service.courses().courseWork().list(courseId=319934191831).execute()
     courseWorkDict = dict()
 
+    stdtsRes= cs.list_students(319934191831,True)
+    studentsDict={}
+    studentsLst=[]
+    for s in stdtsRes:
+        id = int(s['userId'])
+        stdt= Student(id,s['profile']['name']['fullName'],s['profile']['name']['familyName'],nickFromId(id))
+        studentsDict[id]=(stdt)
+        studentsLst.append(stdt)
+    studentsLst.sort(key=lambda x: x.familyName)
     # go through works, and collect them to a dictionary with names and dates.
     for c in res['courseWork']: # הדפסת רשימת המטלות
         #print(c['id'], c['title']) # הדפסת רשימת המטלות
@@ -74,33 +104,37 @@ def main():
     print('\nCounted works in dict:',len(courseWorkDict))
 
     #test 30/9: '400863422243' #looking at specific submission of a work by a student
-    for hagasha in []:#[448006770517 ,467869743253]:# these are 1430, 1520, 468340104676]:
-        res2 = cs.list_submissions(319934191831,hagasha) #using the functions in the snippets.
-        print('gilads submissions for specific hagashot')
-        for r in res2:
-            if r['userId'] == '109281564654077610155': # gilad
-                print(len(r['assignmentSubmission']['attachments']))
-                print(r)
-                print(r)
-        print()
+    # for hagasha in []:#[448006770517 ,467869743253]:# these are 1430, 1520, 468340104676]:
+    #     res2 = cs.list_submissions(319934191831,hagasha) #using the functions in the snippets.
+    #     print('gilads submissions for specific hagashot')
+    #     for r in res2:
+    #         if r['userId'] == '109281564654077610155': # gilad
+    #             print(len(r['assignmentSubmission']['attachments']))
+    #             print(r)
+    #             print(r)
+    #     print()
 
-    for userid in ['109281564654077610155']:
-        res4 = cs.list_all_submissions(319934191831,109281564654077610155,False)
+    for std in studentsLst: #['109281564654077610155']:
+        res4 = cs.list_all_submissions(319934191831,std.id,False)
         stdWorkSubs= {}
         for s in res4:
             id = s['courseWorkId']
             if id in courseWorkDict:
                 stdWorkSubs[id]=s['state']
-                #print('gilads',s)
-        #print('\nworks submitted', len(stdWorkSubs))
+
         countStdSubmissions = 0
         for s in stdWorkSubs:
             state = stdWorkSubs[s]
             #print(courseWorkDict[s],'gilad:',state)
             if state != "CREATED":
                 countStdSubmissions+=1
+        std.latestAvg = round(countStdSubmissions / (len(stdWorkSubs) - 3),2)
+        print(f'{std}, {countStdSubmissions}/{(len(stdWorkSubs)-3)}, {countStdSubmissions/(len(stdWorkSubs)-3):.2f}')
 
-        print(f'Gilad submitions {countStdSubmissions}/{(len(stdWorkSubs)-3)}')
+    jsonpickle.set_encoder_options('json', sort_keys=True, indent=2)
+    with open("studentsDict.json", "w") as outfile:
+        #json.dump(studentsLst, outfile)
+        outfile.write(jsonpickle.encode(studentsDict))
     # res3 = service.courses().courseWork().studentSubmissions().list(courseId=319934191831,courseWorkId=400863422243).execute()
     # #res3 will contain all grades but not rubric breakdown.
     # results = service.courses().list(pageSize=10).execute()

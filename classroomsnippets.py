@@ -314,3 +314,24 @@ class ClassroomSnippets(object):
             body=guardian_invitation).execute()
         print("Invitation created with id: {%s}"
               % guardian_invitation.get('invitationId'))
+
+    def list_students(self,course_id,debug=False):
+        """ Lists all students in a course. """
+        service = self.service
+        # [START classroom_list_submissions]
+        students = []
+        page_token = None
+
+        while True:
+            courses = service.courses()
+            response = courses.students().list(
+                pageToken=page_token,
+                courseId=course_id).execute()
+            students.extend(response.get('students', []))
+            page_token = response.get('nextPageToken', None)
+            if not page_token:
+                break
+        if debug:
+            for x in students:
+                print(x)
+        return students
