@@ -1,3 +1,4 @@
+#Guy Siedes, based on https://github.com/googleworkspace/python-samples/tree/master/classroom/snippets
 from __future__ import print_function
 from googleapiclient import errors
 

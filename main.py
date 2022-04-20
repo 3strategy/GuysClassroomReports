@@ -1,6 +1,4 @@
-#started from https://github.com/googleworkspace/python-samples/tree/master/classroom/snippets
-# https://issuetracker.google.com/issues/130443624?pli=1
-# The issue above is about the missing feature (getting grades with rubric details).
+#Guy Siedes, based on https://github.com/googleworkspace/python-samples/tree/master/classroom/snippets
 from __future__ import print_function
 import os.path
 from googleapiclient.discovery import build
@@ -105,18 +103,8 @@ def main():
             courseWorkDict[id]=wrk
     print('\nCounted works in dict:',len(courseWorkDict))
 
-    #test 30/9: '400863422243' #looking at specific submission of a work by a student
-    # for hagasha in []:#[448006770517 ,467869743253]:# these are 1430, 1520, 468340104676]:
-    #     res2 = cs.list_submissions(319934191831,hagasha) #using the functions in the snippets.
-    #     print('gilads submissions for specific hagashot')
-    #     for r in res2:
-    #         if r['userId'] == '109281564654077610155': # gilad
-    #             print(len(r['assignmentSubmission']['attachments']))
-    #             print(r)
-    #             print(r)
-    #     print()
 
-    for std in studentsLst: #['109281564654077610155']:
+    for std in studentsLst:
         res4 = cs.list_all_submissions(classID,std.id,False)
         stdWorkSubs= {}
         for s in res4:
@@ -127,7 +115,6 @@ def main():
         countStdSubmissions = 0
         for s in stdWorkSubs:
             state = stdWorkSubs[s]
-            #print(courseWorkDict[s],'gilad:',state)
             if state != "CREATED":
                 countStdSubmissions+=1
         std.studentHwAvg = int(round(100*countStdSubmissions / (len(stdWorkSubs) - hwSkips)))
