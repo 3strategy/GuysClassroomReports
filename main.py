@@ -36,6 +36,7 @@ def nickFromId(id):
 def main():
     classID = 319934191831 # you need to find out what your class Id is.
     cutOffDate = (2022,1,20)   # count couseWork due after this date (or if no due date - work created after this date)
+    hwSkips = 3 # how many submissions can be skipped
     global useNickNames
     # you must use the initial students console print to create a shortEnglish Name to ID mapping (as seen above)
     # without a shortname (english) it's impossible to use the outputs efficiently.
@@ -129,8 +130,8 @@ def main():
             #print(courseWorkDict[s],'gilad:',state)
             if state != "CREATED":
                 countStdSubmissions+=1
-        std.studentHwAvg = int(round(100*countStdSubmissions / (len(stdWorkSubs) - 3)))
-        print(f'{countStdSubmissions}/{(len(stdWorkSubs)-3)},\t{std}')
+        std.studentHwAvg = int(round(100*countStdSubmissions / (len(stdWorkSubs) - hwSkips)))
+        print(f'{countStdSubmissions}/{(len(stdWorkSubs)-hwSkips)},\t{std}')
 
     # output sorted std list with HW submission rates to console
     print('\n\n Sorted averages:')
