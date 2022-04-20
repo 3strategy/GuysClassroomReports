@@ -15,13 +15,8 @@ SCOPES = ['https://www.googleapis.com/auth/classroom.courses.readonly',
      'https://www.googleapis.com/auth/classroom.rosters.readonly',
      'https://www.googleapis.com/auth/classroom.profile.emails',
      'https://www.googleapis.com/auth/classroom.student-submissions.students.readonly']
-class CourseWork():
-    def __init__(self,id,name,date):
-      self.id=id
-      self.name=name
-      self.date=date
-    def __repr__(self):
-        return f'{self.id}, {self.name[:10]}, {self.date}'
+
+useNickNames = False # set to False if you don't want to manually define English nick Names
 
 stdNames = dict([(107766054206145875440,'maayan'), (111172737869240566953,'nimrod'),(108168318660396843189,'guy'), \
                 (112946615777025405797,'gal'),(110218538845151914929,'elad'),(109082288264554060697,'asaf'), \
@@ -31,27 +26,30 @@ stdNames = dict([(107766054206145875440,'maayan'), (111172737869240566953,'nimro
                 (106552389423231110486,'naor'),(112690319777254745789,'yair'),(117090042331819769440,'mayaa'), \
                 (106438875759955145463,'mayas'),(116461312202155079828,'yonatao'),(109281564654077610155,'gilad'), \
                 (101718685423349384354,'yonatanal'),(102048010413141818326,'dana'),(109290410974718440223,'yonatanm')])
+
 def nickFromId(id):
     if id in stdNames:
         return stdNames[id]
     return 'noNickForId'
 
-class Student():
-    def __init__(self,id,name,familyName,nickName):
-      self.id=id
-      self.name=name
-      self.familyName = familyName
-      self.nickName=nickName
-      self.courseWork={}
-      self.latestAvg=0
-    def __repr__(self):
-        return f'{self.id}, {self.name}, {self.nickName}, {self.familyName}'
-
-    # def toJSON(self):
-    #   return json.dumps(self, default=lambda o: o.__dict__,
-    #                     sort_keys=True, indent=4)
 
 def main():
+    classID = 319934191831 # you need to find out what your class Id is.
+    cutOffDate = (2022,1,20)   # count couseWork due after this date (or if no due date - work created after this date)
+    global useNickNames
+    # you must use the initial students console print to create a shortEnglish Name to ID mapping (as seen above)
+    # without a shortname (english) it's impossible to use the outputs efficiently.
+    # you may avoid this by setting useNickNames = False
+
+    import pathlib
+    p = pathlib.Path('studentsDict.json')
+    if p.is_file():
+        f = open('studentsDict.json', 'r')
+        sdudentsDickFromBackup = jsonpickle.decode(f.read())  # later used to check for differnces (new submissions).
+    else:
+        print('\n********\nno backup file "studentsDict.json" available for comparison\n********')
+        sdudentsDickFromBackup = None
+
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -75,17 +73,20 @@ def main():
     service = build('classroom', 'v1', credentials=creds)
 
     cs = ClassroomSnippets(service)
-    course = cs.get_course(319934191831) #using the functions in the snippets.
+    course = cs.get_course(classID) #using the functions in the snippets.
     print('gs13',course['name'])
-    res = service.courses().courseWork().list(courseId=319934191831).execute()
+    res = service.courses().courseWork().list(courseId=classID).execute()
     courseWorkDict = dict()
 
-    stdtsRes= cs.list_students(319934191831,True)
+    stdtsRes= cs.list_students(classID,True)
     studentsDict={}
     studentsLst=[]
     for s in stdtsRes:
         id = int(s['userId'])
-        stdt= Student(id,s['profile']['name']['fullName'],s['profile']['name']['familyName'],nickFromId(id))
+        if useNickNames:
+            stdt= Student(id,s['profile']['name']['fullName'],s['profile']['name']['familyName'],nickFromId(id))
+        else:
+            stdt = Student(id, s['profile']['name']['fullName'], s['profile']['name']['familyName'])
         studentsDict[id]=(stdt)
         studentsLst.append(stdt)
     studentsLst.sort(key=lambda x: x.familyName)
@@ -98,7 +99,7 @@ def main():
         else:
             d = c['creationTime'][:10].split('-')
             date = datetime.datetime(int(d[0]),int(d[1]),int(d[2]))
-        if date>datetime.datetime(2022,1,20):
+        if date>datetime.datetime(cutOffDate[0],cutOffDate[1],cutOffDate[2]):
             wrk = CourseWork(id, c['title'], date)
             courseWorkDict[id]=wrk
     print('\nCounted works in dict:',len(courseWorkDict))
@@ -115,7 +116,7 @@ def main():
     #     print()
 
     for std in studentsLst: #['109281564654077610155']:
-        res4 = cs.list_all_submissions(319934191831,std.id,False)
+        res4 = cs.list_all_submissions(classID,std.id,False)
         stdWorkSubs= {}
         for s in res4:
             id = s['courseWorkId']
@@ -128,24 +129,27 @@ def main():
             #print(courseWorkDict[s],'gilad:',state)
             if state != "CREATED":
                 countStdSubmissions+=1
-        std.latestAvg = round(countStdSubmissions / (len(stdWorkSubs) - 3),2)
-        print(f'{std}, {countStdSubmissions}/{(len(stdWorkSubs)-3)}, {countStdSubmissions/(len(stdWorkSubs)-3):.2f}')
+        std.studentHwAvg = int(round(100*countStdSubmissions / (len(stdWorkSubs) - 3)))
+        print(f'{countStdSubmissions}/{(len(stdWorkSubs)-3)},\t{std}')
 
+    # output sorted std list with HW submission rates to console
+    print('\n\n Sorted averages:')
+    for x in studentsLst:
+      print (x)
+
+    if sdudentsDickFromBackup != None:
+        for x in studentsDict:
+            oldAvg=sdudentsDickFromBackup[str(x)].studentHwAvg
+            if studentsDict[x].studentHwAvg != oldAvg:
+                print(studentsDict[x], f' ***changed*** from  {oldAvg} to {studentsDict[x].studentHwAvg}')
+
+    # output JSON file for later comaprison between dates.
     jsonpickle.set_encoder_options('json', sort_keys=True, indent=2)
-    with open("studentsDict.json", "w") as outfile:
-        #json.dump(studentsLst, outfile)
+    with open(f"studentsDict.{datetime.date.today()}.json", "w") as outfile:
         outfile.write(jsonpickle.encode(studentsDict))
-    # res3 = service.courses().courseWork().studentSubmissions().list(courseId=319934191831,courseWorkId=400863422243).execute()
-    # #res3 will contain all grades but not rubric breakdown.
-    # results = service.courses().list(pageSize=10).execute()
-    # courses = results.get('courses', [])
-    #
-    # if not courses:
-    #    print('No courses found.')
-    # else:
-    #    print('Courses:')
-    #    for course in courses:
-    #        print(course['name'], course['id'])
+    with open(f"studentsDict.json", "w") as outfile:
+        outfile.write(jsonpickle.encode(studentsDict))
+
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,29 @@
 from __future__ import print_function
 from googleapiclient import errors
 
+class CourseWork():
+    def __init__(self,id,name,date):
+      self.id=id
+      self.name=name
+      self.date=date
+    def __repr__(self):
+        return f'{self.id}, {self.name[:10]}, {self.date}'
+
+
+class Student():
+    def __init__(self, id, name, familyName, sEnglishName='NA'):
+      self.id=id
+      self.name=name
+      self.familyName = familyName
+      self.sName=sEnglishName
+      self.courseWork={}
+      self.studentHwAvg=0
+    def __repr__(self):
+        if self.sName == 'NA':
+            return f'{self.familyName}, {self.name}, HW: {self.studentHwAvg}%'
+        else:
+            return f'{self.familyName}, {self.sName}, {self.name}, HW: {self.studentHwAvg}%'
+
 
 class ClassroomSnippets(object):
     def __init__(self, service):
