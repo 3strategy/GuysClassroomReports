@@ -48,7 +48,9 @@ def main():
     else:
         print('\n********\nno backup file "studentsDict.json" available for comparison\n********')
         sdudentsDickFromBackup = None
-
+    p = pathlib.Path('classId.txt')
+    if p.is_file():
+        classID=int(open('classId.txt', 'r').read())
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
