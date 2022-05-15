@@ -111,13 +111,14 @@ def main():
         stdWorkSubs= {}
         for s in res4:
             id = s['courseWorkId']
-            if id in courseWorkDict:
+            if id in courseWorkDict and s['state'] != 'NEW':
                 stdWorkSubs[id]=s['state']
-
+        #if len(stdWorkSubs)<20:
+        #    print("new student")
         countStdSubmissions = 0
         for s in stdWorkSubs:
             state = stdWorkSubs[s]
-            if state != "CREATED":
+            if state != "CREATED" and state !='NEW':
                 countStdSubmissions+=1
         std.studentHwAvg = int(round(100*countStdSubmissions / (len(stdWorkSubs) - hwSkips)))
         print(f'{countStdSubmissions}/{(len(stdWorkSubs)-hwSkips)},\t{std}')
