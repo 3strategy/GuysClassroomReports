@@ -129,10 +129,10 @@ def main():
       print (x)
 
     if sdudentsDickFromBackup != None:
-        for x in studentsDict:
-            oldAvg=sdudentsDickFromBackup[str(x)].studentHwAvg
-            if studentsDict[x].studentHwAvg != oldAvg:
-                print(studentsDict[x], f' ***changed*** from  {oldAvg} to {studentsDict[x].studentHwAvg}')
+        for x in studentsLst:
+            oldAvg=sdudentsDickFromBackup[str(x.id)].studentHwAvg
+            if x.studentHwAvg != oldAvg:
+                print(x, f' ***changed*** from  {oldAvg} to {x.studentHwAvg}')
 
     # output JSON file for later comaprison between dates.
     jsonpickle.set_encoder_options('json', sort_keys=True, indent=2)
