@@ -77,6 +77,7 @@ def main():
     course = cs.get_course(classID) #using the functions in the snippets.
     print('gs13',course['name'])
     res = service.courses().courseWork().list(courseId=classID).execute()
+
     courseWorkDict = dict()
 
     stdtsRes= cs.list_students(classID,True)
@@ -100,7 +101,7 @@ def main():
         else:
             d = c['creationTime'][:10].split('-')
             date = datetime.datetime(int(d[0]),int(d[1]),int(d[2]))
-        if date>datetime.datetime(cutOffDate[0],cutOffDate[1],cutOffDate[2]):
+        if datetime.datetime(cutOffDate[0],cutOffDate[1],cutOffDate[2]) < date < datetime.datetime.now() and "מבחן" not in c['title']:
             wrk = CourseWork(id, c['title'], date)
             courseWorkDict[id]=wrk
     print('\nCounted works in dict:',len(courseWorkDict))
