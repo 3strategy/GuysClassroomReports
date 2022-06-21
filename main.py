@@ -101,7 +101,7 @@ def main():
         else:
             d = c['creationTime'][:10].split('-')
             date = datetime.datetime(int(d[0]),int(d[1]),int(d[2]))
-        if datetime.datetime(cutOffDate[0],cutOffDate[1],cutOffDate[2]) < date < datetime.datetime.now() and "מבחן" not in c['title']:
+        if datetime.datetime(cutOffDate[0],cutOffDate[1],cutOffDate[2]) < date < datetime.datetime.now() :# and "מבחן" not in c['title']:
             wrk = CourseWork(id, c['title'], date)
             courseWorkDict[id]=wrk
     print('\nCounted works in dict:',len(courseWorkDict))
